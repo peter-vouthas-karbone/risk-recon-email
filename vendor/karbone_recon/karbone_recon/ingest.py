@@ -159,7 +159,7 @@ def load_fuels(
     Read the Fuels tradesheet, store immutable raw snapshots, return full DataFrame.
     """
     filepath = Path(filepath)
-    df = pd.read_csv(filepath, header=0, low_memory=False, dtype=str)
+    df = pd.read_csv(filepath, header=0, low_memory=False, dtype=str, on_bad_lines="warn")
     df.columns = df.columns.str.strip()
     df = df.reset_index(drop=True)
 

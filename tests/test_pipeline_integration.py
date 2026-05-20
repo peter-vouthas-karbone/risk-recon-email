@@ -51,9 +51,9 @@ def _create_upstream_tables(conn):
     """)
     conn.execute("""
         CREATE TABLE cross_recon (
-            run_id TEXT, status TEXT, trade_date DATE, side TEXT,
+            run_id TEXT, recon_status TEXT, trade_date DATE, side TEXT,
             counterparty_canonical TEXT, product_canonical TEXT,
-            vintage_canonical TEXT, delivery_match_date DATE,
+            vintage_canonical TEXT,
             mo_volume DOUBLE, fuels_volume DOUBLE,
             mo_wap DOUBLE, fuels_wap DOUBLE
         )
@@ -70,7 +70,7 @@ def _seed_day1(conn, run_id):
         [run_id, date(2026, 5, 18)],
     )
     conn.execute(
-        "INSERT INTO cross_recon VALUES (?, 'matched', ?, 'Buy', 'Air Liquide', 'D3 RIN', '2024', '2026-05-25', 100, 100, 2.5, 2.5)",
+        "INSERT INTO cross_recon VALUES (?, 'matched', ?, 'Buy', 'Air Liquide', 'D3 RIN', '2024', 100, 100, 2.5, 2.5)",
         [run_id, date(2026, 5, 18)],
     )
 
@@ -99,11 +99,11 @@ def _seed_day2(conn, run_id):
         [run_id, date(2026, 5, 19)],
     )
     conn.execute(
-        "INSERT INTO cross_recon VALUES (?, 'matched', ?, 'Buy', 'Air Liquide', 'D3 RIN', '2024', '2026-05-25', 120, 100, 2.5, 2.5)",
+        "INSERT INTO cross_recon VALUES (?, 'matched', ?, 'Buy', 'Air Liquide', 'D3 RIN', '2024', 120, 100, 2.5, 2.5)",
         [run_id, date(2026, 5, 18)],
     )
     conn.execute(
-        "INSERT INTO cross_recon VALUES (?, 'price_break', ?, 'Sell', 'Mercuria', 'D3 RIN', '2025', '2026-05-25', -50, -50, 2.6, 2.55)",
+        "INSERT INTO cross_recon VALUES (?, 'price_break', ?, 'Sell', 'Mercuria', 'D3 RIN', '2025', -50, -50, 2.6, 2.55)",
         [run_id, date(2026, 5, 19)],
     )
     conn.execute(
