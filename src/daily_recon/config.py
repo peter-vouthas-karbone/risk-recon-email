@@ -20,8 +20,8 @@ EMAIL_RECIPIENTS = ["peter.vouthas@karbone.com"]
 EMAIL_CC: list[str] = []
 EMAIL_SENDER = "peter.vouthas@karbone.com"
 
-# SMTP — Microsoft 365 defaults
-SMTP_HOST = "smtp.office365.com"
+# SMTP — Gmail defaults
+SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_STARTTLS = True
 SMTP_RETRY_DELAYS_SEC = (2, 8, 32)
