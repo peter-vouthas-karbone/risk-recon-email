@@ -41,6 +41,11 @@ def collect_trade_drift_exceptions(
                 },
                 "payload": {
                     "source": source,
+                    "trade_date": r["trade_date"],
+                    "side": r["side"],
+                    "counterparty": r["counterparty_canonical"],
+                    "product": r["product_canonical"],
+                    "vintage": r["vintage_canonical"],
                     "change_type": r["change_type"],
                     "prior_volume": r["prior_volume"],
                     "current_volume": r["current_volume"],

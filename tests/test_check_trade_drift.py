@@ -65,3 +65,6 @@ def test_modified_removed_added_become_exceptions(conn):
     for r in rows:
         assert r["check_id"] == "trade_drift"
         assert r["severity"] == "error"
+        assert "counterparty" in r["payload"]
+        assert "product" in r["payload"]
+        assert "vintage" in r["payload"]

@@ -178,6 +178,7 @@ def test_full_pipeline_day1_then_day2(isolated_paths):
     # The prior_day_trades payload includes the counterparty; Mercuria appears
     # in the T-1 price_break exception table.
     assert "Mercuria" in html
+    assert "Air Liquide" in html
     assert "price_break" in html or "PRICE_BREAK" in html
 
     out = result2.output_dir
