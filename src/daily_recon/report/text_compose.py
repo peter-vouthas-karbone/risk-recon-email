@@ -3,12 +3,6 @@ from __future__ import annotations
 
 from daily_recon.report.html_compose import ReconReportData
 
-_CHECK_LABELS = {
-    "position_break": "Position Break",
-}
-_ORDER = ["position_break"]
-
-
 def compose_text(data: ReconReportData) -> str:
     n = data.counts.get("position_break", 0)
     lines = [

@@ -4,8 +4,6 @@ from __future__ import annotations
 import csv
 import json
 import logging
-import sys
-import traceback
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from email.message import EmailMessage
@@ -165,10 +163,10 @@ def run_pipeline(
 
         insert_exceptions(conn, run_id, all_exceptions)
 
-        counts = {"position_break": sum(1 for e in all_exceptions if e["check_id"] == "position_break")}
+        counts = {"position_break": len(all_exceptions)}
 
         # Write per-check CSVs.
-        _write_csv(out_dir / "position_breaks.csv", [e["payload"] for e in all_exceptions if e["check_id"] == "position_break"])
+        _write_csv(out_dir / "position_breaks.csv", [e["payload"] for e in all_exceptions])
         positions_df.to_csv(out_dir / "running_position.csv", index=False)
         (out_dir / "summary.json").write_text(json.dumps({
             "run_id": run_id,

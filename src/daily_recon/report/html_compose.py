@@ -68,7 +68,6 @@ def _section_position_break(data: ReconReportData) -> str:
     )
 
 
-
 def _footer() -> str:
     from karbone_pnl_pos.reporting.html_builder import _s
     foot_st = _s(border_top=f"1px solid {T.divider}", background=T.wash,
