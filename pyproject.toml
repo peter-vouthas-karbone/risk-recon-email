@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "daily-recon"
+version = "0.1.0"
+description = "Daily FO/MO RINs reconciliation pipeline"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0",
+    "duckdb>=0.10",
+    "keyring>=24.0",
+    "karbone-recon",
+    "karbone-pnl-pos",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=4.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.uv.sources]
+karbone-recon = { path = "vendor/karbone_recon", editable = true }
+karbone-pnl-pos = { path = "vendor/karbone_pnl_pos", editable = true }

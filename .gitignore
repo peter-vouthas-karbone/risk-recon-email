@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+*.duckdb
+_extracted/
+output/
+data/incoming/*
+data/archive/*
+!data/incoming/.gitkeep
+!data/archive/.gitkeep
+.venv/
