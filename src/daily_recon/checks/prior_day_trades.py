@@ -14,11 +14,11 @@ def collect_prior_day_trade_exceptions(
     target = business_date - timedelta(days=1)
     df = conn.execute(
         """
-        SELECT status, trade_date, side, counterparty_canonical, product_canonical,
-               vintage_canonical, delivery_match_date,
+        SELECT recon_status AS status, trade_date, side, counterparty_canonical, product_canonical,
+               vintage_canonical,
                mo_volume, fuels_volume, mo_wap, fuels_wap
         FROM cross_recon
-        WHERE run_id = ? AND trade_date = ? AND status <> 'matched'
+        WHERE run_id = ? AND trade_date = ? AND recon_status <> 'matched'
         """,
         [run_id, target],
     ).df()
@@ -34,7 +34,6 @@ def collect_prior_day_trade_exceptions(
                 "counterparty": r["counterparty_canonical"],
                 "product": r["product_canonical"],
                 "vintage": r["vintage_canonical"],
-                "delivery": r["delivery_match_date"],
             },
             "payload": {
                 "status": r["status"],
@@ -43,7 +42,6 @@ def collect_prior_day_trade_exceptions(
                 "counterparty": r["counterparty_canonical"],
                 "product": r["product_canonical"],
                 "vintage": r["vintage_canonical"],
-                "delivery": r["delivery_match_date"],
                 "mo_volume": r["mo_volume"],
                 "fo_volume": r["fuels_volume"],
                 "mo_wap": r["mo_wap"],

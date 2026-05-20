@@ -54,7 +54,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         result = run_pipeline(business_date=business_date, send_email=not args.no_email)
-        print(f"Run {result.run_id}: {result.exception_count} exceptions → {result.output_dir}")
+        print(f"Run {result.run_id}: {result.exception_count} exceptions -> {result.output_dir}")
         return 0
     except MailerCredentialError as e:
         logging.error("Keyring credential missing: %s", e)
