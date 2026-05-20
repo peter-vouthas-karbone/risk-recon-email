@@ -6,7 +6,7 @@ from daily_recon import config
 def test_constants_present_and_sane():
     assert config.TOLERANCE == 1e-6
     assert "peter.vouthas@karbone.com" in config.EMAIL_RECIPIENTS
-    assert config.SMTP_HOST == "smtp.office365.com"
+    assert config.SMTP_HOST == "smtp.gmail.com"
     assert config.SMTP_PORT == 587
     assert config.SMTP_STARTTLS is True
     assert config.KEYRING_SERVICE == "karbone_recon_smtp"
