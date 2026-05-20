@@ -23,29 +23,18 @@ def _data(exceptions):
 def test_html_zero_exception_path():
     html = compose_html(_data([]))
     assert "<!DOCTYPE html>" in html
-    assert "All checks clean" in html
+    assert "No MO vs FO position breaks detected" in html
 
 
-def test_html_with_each_check_section():
+def test_html_with_position_break_section():
     excs = [
         {"check_id": "position_break", "key": {}, "payload": {
             "business_date": "2026-05-19", "product": "D3 RIN", "vintage": "2024",
             "mo_position": 100, "fo_position": 90, "delta": 10,
         }},
-        {"check_id": "trade_drift", "key": {}, "payload": {
-            "source": "mo", "change_type": "modified_trade",
-            "counterparty": "Air Liquide", "product": "D3 RIN", "vintage": "2024",
-            "prior_volume": 100, "current_volume": 100, "prior_wap": 2.44, "current_wap": 2.45,
-        }},
     ]
     html = compose_html(_data(excs))
-    # Section kickers appear
     assert "Position Break" in html
-    assert "Trade Drift" in html
-    assert "T-1 Trades" not in html
-    # Empty check renders empty state
-    assert "No historical position drift" in html
-    # Theme tokens present
     assert "#0a2540" in html
 
 
@@ -57,17 +46,13 @@ def test_text_compose_contains_section_counts():
     text = compose_text(_data(excs))
     assert "RINs Reconciliation" in text
     assert "2026-05-20" in text
-    assert "Position Break: 1" in text
-    assert "Trade Drift: 0" in text
+    assert "Position breaks: 1" in text
 
 
 def test_subject_helper():
     from daily_recon.report.html_compose import compose_subject
     assert compose_subject(_data([])) == "[RINs Recon] 2026-05-20 — clean"
+    excs = [{"check_id": "position_break", "key": {}, "payload": {}}]
+    assert compose_subject(_data(excs)) == "[RINs Recon] 2026-05-20 — 1 position break exception"
     excs = [{"check_id": "position_break", "key": {}, "payload": {}}] * 3
-    assert compose_subject(_data(excs)) == "[RINs Recon] 2026-05-20 — 3 exceptions across 1 check"
-    excs = (
-        [{"check_id": "position_break", "key": {}, "payload": {}}] * 2
-        + [{"check_id": "trade_drift", "key": {}, "payload": {}}]
-    )
-    assert compose_subject(_data(excs)) == "[RINs Recon] 2026-05-20 — 3 exceptions across 2 checks"
+    assert compose_subject(_data(excs)) == "[RINs Recon] 2026-05-20 — 3 position break exceptions"

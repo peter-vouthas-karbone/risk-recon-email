@@ -1,13 +1,15 @@
 """Check 3 — MO vs FO running position equality across all dates."""
 from __future__ import annotations
 
+from datetime import date
+
 import duckdb
 
 from daily_recon.config import DESYNC_CUTOFF_DATE, TOLERANCE
 
 
 def collect_position_equality_exceptions(
-    conn: duckdb.DuckDBPyConnection, run_id: str
+    conn: duckdb.DuckDBPyConnection, run_id: str, *, date_from: date | None = None
 ) -> list[dict]:
     df = conn.execute(
         """
@@ -30,7 +32,7 @@ def collect_position_equality_exceptions(
             USING (business_date, product_canonical, vintage_canonical)
         ) WHERE business_date >= ?
         """,
-        [run_id, run_id, DESYNC_CUTOFF_DATE],
+        [run_id, run_id, date_from or DESYNC_CUTOFF_DATE],
     ).df()
 
     rows: list[dict] = []

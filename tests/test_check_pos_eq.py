@@ -77,3 +77,12 @@ def test_below_tolerance_ignored(conn):
         ("fo", date(2026, 5, 19), "D3 RIN", "2024", 100.0 + 1e-9),
     ])
     assert collect_position_equality_exceptions(conn, run_id="R1") == []
+
+
+def test_date_from_excludes_breaks_before_window(conn):
+    _seed(conn, "R1", [
+        ("mo", date(2026, 5, 10), "D3 RIN", "2024", 100.0),
+        ("fo", date(2026, 5, 10), "D3 RIN", "2024", 80.0),
+    ])
+    rows = collect_position_equality_exceptions(conn, run_id="R1", date_from=date(2026, 5, 15))
+    assert rows == []

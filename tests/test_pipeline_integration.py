@@ -161,24 +161,26 @@ def test_full_pipeline_day1_then_day2(isolated_paths):
     conn2.close()
 
     assert result2.status == "success"
-    # The backdated MO modification creates both a historical drift AND a
-    # position break (MO 120 vs FO 100 on 2026-05-18).
-    assert result2.counts["trade_drift"] == 1
-    assert result2.counts["historical_position_drift"] == 1
+    # The backdated MO modification on 2026-05-18 (MO 120 vs FO 100) creates
+    # a position break — the only check that runs in the stripped pipeline.
     assert result2.counts["position_break"] == 1
+    assert "trade_drift" not in result2.counts
+    assert "historical_position_drift" not in result2.counts
     assert "prior_day_trades" not in result2.counts
-    assert result2.exception_count == 3
+    assert result2.exception_count == 1
 
     msg = mailer2.sent[0]
-    assert "3 exceptions across 3 checks" in msg["Subject"]
-    # MIME structure: multipart/mixed → [multipart/alternative, csv, csv, csv]
+    assert "1 position break exception" in msg["Subject"]
+    # MIME structure: multipart/mixed → [multipart/alternative, csv]
     # The alternative part contains [text/plain, text/html].
     alternative_part = msg.get_payload()[0]
     html = alternative_part.get_payload()[1].get_content()
-    # Air Liquide appears in both position_break and historical_position_drift.
-    assert "Air Liquide" in html
+    # The position_break row shows the D3 RIN product and 2024 vintage.
+    assert "D3 RIN" in html
+    assert "2024" in html
 
     out = result2.output_dir
     assert (out / "summary.json").exists()
-    assert (out / "trade_drift.csv").read_text().count("\n") >= 1
-    assert not (out / "prior_day_trade_breaks.csv").exists()
+    assert (out / "position_breaks.csv").read_text().count("\n") >= 1
+    assert not (out / "trade_drift.csv").exists()
+    assert not (out / "historical_position_drift.csv").exists()
