@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "karbone-recon"
+version = "0.1.0"
+description = "Vendored copy of the Karbone tradesheet reconciliation project."
+requires-python = ">=3.11"
+dependencies = ["pandas>=2.0", "duckdb>=0.10"]
+
+[tool.setuptools.packages.find]
+include = ["karbone_recon*"]
