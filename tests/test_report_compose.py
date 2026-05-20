@@ -15,7 +15,6 @@ def _data(exceptions):
             "trade_drift": sum(1 for e in exceptions if e["check_id"] == "trade_drift"),
             "historical_position_drift": sum(1 for e in exceptions if e["check_id"] == "historical_position_drift"),
             "position_break": sum(1 for e in exceptions if e["check_id"] == "position_break"),
-            "prior_day_trades": sum(1 for e in exceptions if e["check_id"] == "prior_day_trades"),
         },
         exceptions=exceptions,
     )
@@ -33,11 +32,6 @@ def test_html_with_each_check_section():
             "business_date": "2026-05-19", "product": "D3 RIN", "vintage": "2024",
             "mo_position": 100, "fo_position": 90, "delta": 10,
         }},
-        {"check_id": "prior_day_trades", "key": {}, "payload": {
-            "status": "price_break", "counterparty": "Mercuria", "side": "Sell",
-            "product": "D3 RIN", "vintage": "2024",
-            "mo_volume": 100, "fo_volume": 100, "mo_wap": 2.5, "fo_wap": 2.49,
-        }},
         {"check_id": "trade_drift", "key": {}, "payload": {
             "source": "mo", "change_type": "modified_trade",
             "counterparty": "Air Liquide", "product": "D3 RIN", "vintage": "2024",
@@ -47,8 +41,8 @@ def test_html_with_each_check_section():
     html = compose_html(_data(excs))
     # Section kickers appear
     assert "Position Break" in html
-    assert "T-1 Trades" in html
     assert "Trade Drift" in html
+    assert "T-1 Trades" not in html
     # Empty check renders empty state
     assert "No historical position drift" in html
     # Theme tokens present

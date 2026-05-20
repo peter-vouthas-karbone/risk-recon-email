@@ -34,18 +34,17 @@ def test_hero_with_exceptions_is_red():
     assert "2 of 4" in html
 
 
-def test_check_strip_renders_four_cells():
+def test_check_strip_renders_three_cells():
     counts = {
         "trade_drift": 2,
         "historical_position_drift": 0,
         "position_break": 3,
-        "prior_day_trades": 2,
     }
     html = render_check_strip(counts)
-    assert html.count("<td") >= 4
+    assert html.count("<td") >= 3
     assert "Trade Drift" in html
     assert "Position Break" in html
-    assert "T-1 Trades" in html
+    assert "T-1 Trades" not in html
     # Zero-count cell renders the en-dash and uses subtle color.
     assert "#8a97a8" in html
 

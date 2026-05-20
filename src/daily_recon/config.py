@@ -2,6 +2,7 @@
 
 All tunables live here. No env vars, no YAML — one file, one place to change.
 """
+from datetime import date
 from pathlib import Path
 
 # Project root: this file is at src/daily_recon/config.py
@@ -14,6 +15,10 @@ DUCKDB_PATH = PROJECT_ROOT / "recon.duckdb"
 
 # Numeric tolerance for both volume and price comparisons.
 TOLERANCE = 1e-6
+
+# Position exceptions (breaks, historical drift) for business_date before this
+# date are suppressed — pre-live data is expected to be incomplete.
+DESYNC_CUTOFF_DATE = date(2026, 1, 1)
 
 # Email
 EMAIL_RECIPIENTS = ["peter.vouthas@karbone.com"]
@@ -36,4 +41,4 @@ MAX_TABLE_ROWS_IN_EMAIL = 50
 # Source tradesheets (read-only; the pipeline never modifies these)
 POSITIONS_DIR = Path(r"G:\Shared drives\KarboneRisk\Data\Positions")
 MO_SOURCE_PATH = POSITIONS_DIR / "rins_tradesheet_no_rng.csv"
-FUELS_SOURCE_PATH = POSITIONS_DIR / "Fuels_Tradesheet.csv"
+FUELS_SOURCE_PATH = POSITIONS_DIR / "Fuels_Tradesheet_Cpty.csv"

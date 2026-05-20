@@ -22,9 +22,8 @@ _CHECK_LABELS = {
     "trade_drift": "Trade Drift",
     "historical_position_drift": "Hist. Position",
     "position_break": "Position Break",
-    "prior_day_trades": "T-1 Trades",
 }
-_CHECK_ORDER = ["trade_drift", "historical_position_drift", "position_break", "prior_day_trades"]
+_CHECK_ORDER = ["trade_drift", "historical_position_drift", "position_break"]
 
 
 def render_header_band(business_date: date, run_id: str, prior_run_date: date | None) -> str:

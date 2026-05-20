@@ -75,6 +75,19 @@ def test_dates_at_or_after_T_minus_1_are_ignored(conn):
     assert rows == []
 
 
+def test_breaks_before_cutoff_are_suppressed(conn):
+    _seed(conn, "R0", date(2026, 5, 19), [
+        ("mo", date(2025, 12, 31), "D3 RIN", "2024", 100.0),
+    ])
+    _seed(conn, "R1", date(2026, 5, 20), [
+        ("mo", date(2025, 12, 31), "D3 RIN", "2024", 120.0),
+    ])
+    rows = collect_historical_position_drift_exceptions(
+        conn, current_run_id="R1", prior_run_id="R0", business_date=date(2026, 5, 20)
+    )
+    assert rows == []
+
+
 def test_below_tolerance_is_ignored(conn):
     _seed(conn, "R0", date(2026, 5, 19), [
         ("mo", date(2026, 5, 17), "D3 RIN", "2024", 100.0),

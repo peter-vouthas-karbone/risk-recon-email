@@ -10,7 +10,7 @@ from typing import Optional
 
 import duckdb
 
-from daily_recon.config import TOLERANCE
+from daily_recon.config import DESYNC_CUTOFF_DATE, TOLERANCE
 
 
 def collect_historical_position_drift_exceptions(
@@ -28,12 +28,12 @@ def collect_historical_position_drift_exceptions(
         WITH cur AS (
             SELECT source, business_date, product_canonical, vintage_canonical, position
             FROM pos_running_position
-            WHERE run_id = ? AND business_date < ?
+            WHERE run_id = ? AND business_date < ? AND business_date >= ?
         ),
         prv AS (
             SELECT source, business_date, product_canonical, vintage_canonical, position
             FROM pos_running_position
-            WHERE run_id = ? AND business_date < ?
+            WHERE run_id = ? AND business_date < ? AND business_date >= ?
         )
         SELECT
             COALESCE(cur.source, prv.source) AS source,
@@ -44,7 +44,7 @@ def collect_historical_position_drift_exceptions(
             COALESCE(prv.position, 0.0) AS prior_position
         FROM cur FULL OUTER JOIN prv USING (source, business_date, product_canonical, vintage_canonical)
         """,
-        [current_run_id, cutoff, prior_run_id, cutoff],
+        [current_run_id, cutoff, DESYNC_CUTOFF_DATE, prior_run_id, cutoff, DESYNC_CUTOFF_DATE],
     ).df()
 
     rows: list[dict] = []

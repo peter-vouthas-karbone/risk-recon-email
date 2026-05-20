@@ -175,7 +175,6 @@ def compose_html(data: ReconReportData) -> str:
         )
         + render_check_strip(data.counts)
         + _section_position_break(data)
-        + _section_prior_day_trades(data)
         + _section_trade_drift(data)
         + _section_historical_position(data)
         + _footer()

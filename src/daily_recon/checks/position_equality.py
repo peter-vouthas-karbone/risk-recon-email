@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import duckdb
 
-from daily_recon.config import TOLERANCE
+from daily_recon.config import DESYNC_CUTOFF_DATE, TOLERANCE
 
 
 def collect_position_equality_exceptions(
@@ -19,16 +19,18 @@ def collect_position_equality_exceptions(
             SELECT business_date, product_canonical, vintage_canonical, position
             FROM pos_running_position WHERE run_id = ? AND source = 'fo'
         )
-        SELECT
-            COALESCE(mo.business_date, fo.business_date) AS business_date,
-            COALESCE(mo.product_canonical, fo.product_canonical) AS product,
-            COALESCE(mo.vintage_canonical, fo.vintage_canonical) AS vintage,
-            COALESCE(mo.position, 0.0) AS mo_position,
-            COALESCE(fo.position, 0.0) AS fo_position
-        FROM mo FULL OUTER JOIN fo
-        USING (business_date, product_canonical, vintage_canonical)
+        SELECT * FROM (
+            SELECT
+                COALESCE(mo.business_date, fo.business_date) AS business_date,
+                COALESCE(mo.product_canonical, fo.product_canonical) AS product,
+                COALESCE(mo.vintage_canonical, fo.vintage_canonical) AS vintage,
+                COALESCE(mo.position, 0.0) AS mo_position,
+                COALESCE(fo.position, 0.0) AS fo_position
+            FROM mo FULL OUTER JOIN fo
+            USING (business_date, product_canonical, vintage_canonical)
+        ) WHERE business_date >= ?
         """,
-        [run_id, run_id],
+        [run_id, run_id, DESYNC_CUTOFF_DATE],
     ).df()
 
     rows: list[dict] = []

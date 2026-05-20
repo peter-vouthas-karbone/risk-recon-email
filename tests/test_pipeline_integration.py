@@ -166,22 +166,19 @@ def test_full_pipeline_day1_then_day2(isolated_paths):
     assert result2.counts["trade_drift"] == 1
     assert result2.counts["historical_position_drift"] == 1
     assert result2.counts["position_break"] == 1
-    assert result2.counts["prior_day_trades"] == 1
-    assert result2.exception_count == 4
+    assert "prior_day_trades" not in result2.counts
+    assert result2.exception_count == 3
 
     msg = mailer2.sent[0]
-    assert "4 exceptions across 4 checks" in msg["Subject"]
-    # MIME structure: multipart/mixed → [multipart/alternative, csv, csv, csv, csv]
+    assert "3 exceptions across 3 checks" in msg["Subject"]
+    # MIME structure: multipart/mixed → [multipart/alternative, csv, csv, csv]
     # The alternative part contains [text/plain, text/html].
     alternative_part = msg.get_payload()[0]
     html = alternative_part.get_payload()[1].get_content()
-    # The prior_day_trades payload includes the counterparty; Mercuria appears
-    # in the T-1 price_break exception table.
-    assert "Mercuria" in html
+    # Air Liquide appears in both position_break and historical_position_drift.
     assert "Air Liquide" in html
-    assert "price_break" in html or "PRICE_BREAK" in html
 
     out = result2.output_dir
     assert (out / "summary.json").exists()
     assert (out / "trade_drift.csv").read_text().count("\n") >= 1
-    assert (out / "prior_day_trade_breaks.csv").read_text().count("\n") >= 1
+    assert not (out / "prior_day_trade_breaks.csv").exists()
