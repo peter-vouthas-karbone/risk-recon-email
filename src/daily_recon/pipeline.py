@@ -253,8 +253,60 @@ def default_incoming_runner(conn: duckdb.DuckDBPyConnection, business_date: date
 
     Returns the upstream run_id corresponding to the staged data.
     """
-    raise NotImplementedError(
-        "default_incoming_runner is a stub. The real wiring to karbone_recon's "
-        "archive/ingest/stage/audit/reconcile functions will be done once the actual "
-        "CSV ingestion paths are confirmed. Tests inject a fake incoming_runner."
+    from karbone_recon.db import create_schema
+    from karbone_recon.archive import archive_current_inputs, CANONICAL_MO, CANONICAL_FUELS
+    from karbone_recon.ingest import load_mo, load_fuels
+    from karbone_recon.stage import expand_mo_legs, stage_fuels
+    from karbone_recon.audit import get_prior_run_id, detect_mo_drift, detect_fuels_drift
+    from karbone_recon.reconcile import reconcile_cross_system
+    from karbone_recon.mappings import (
+        load_counterparty_map, load_vintage_rules, build_counterparty_lookup,
     )
+
+    create_schema(conn)
+
+    try:
+        load_counterparty_map(conn)
+        load_vintage_rules(conn)
+    except FileNotFoundError:
+        logger.warning("counterparty_mapping.csv not found — running with empty lookup")
+
+    mo_path = config.MO_SOURCE_PATH
+    fuels_path = config.FUELS_SOURCE_PATH
+    if not mo_path.exists():
+        raise FileNotFoundError(f"MO source not found: {mo_path}")
+    if not fuels_path.exists():
+        raise FileNotFoundError(f"Fuels source not found: {fuels_path}")
+
+    archive_current_inputs(
+        business_date,
+        mo_path=config.DATA_ROOT / CANONICAL_MO,
+        fuels_path=config.DATA_ROOT / CANONICAL_FUELS,
+        force=True,
+    )
+
+    now = datetime.now()
+    upstream_run_id = _new_run_id(now)
+
+    mo_df = load_mo(mo_path, upstream_run_id, business_date, now, conn)
+    fuels_df = load_fuels(fuels_path, upstream_run_id, business_date, now, conn)
+
+    vendor_lookup = build_counterparty_lookup(conn, "mo_vendor")
+    customer_lookup = build_counterparty_lookup(conn, "mo_customer")
+    fuels_lookup = build_counterparty_lookup(conn, "fuels")
+
+    expand_mo_legs(mo_df, upstream_run_id, vendor_lookup, customer_lookup, conn)
+    stage_fuels(fuels_df, upstream_run_id, fuels_lookup, conn)
+
+    conn.execute(
+        "INSERT INTO runs (run_id, business_date, ingestion_timestamp, "
+        "mo_source_file, fuels_source_file, mgmt_source_file) VALUES (?, ?, ?, ?, ?, NULL)",
+        [upstream_run_id, business_date, now, mo_path.name, fuels_path.name],
+    )
+
+    prior_run_id = get_prior_run_id(conn, upstream_run_id)
+    detect_mo_drift(conn, upstream_run_id, prior_run_id, business_date)
+    detect_fuels_drift(conn, upstream_run_id, prior_run_id, business_date)
+    reconcile_cross_system(conn, upstream_run_id)
+
+    return upstream_run_id

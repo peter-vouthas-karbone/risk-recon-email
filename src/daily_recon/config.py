@@ -32,3 +32,8 @@ KEYRING_USERNAME = "peter.vouthas@karbone.com"
 
 # Report formatting
 MAX_TABLE_ROWS_IN_EMAIL = 50
+
+# Source tradesheets (read-only; the pipeline never modifies these)
+POSITIONS_DIR = Path(r"G:\Shared drives\KarboneRisk\Data\Positions")
+MO_SOURCE_PATH = POSITIONS_DIR / "rins_tradesheet_no_rng.csv"
+FUELS_SOURCE_PATH = POSITIONS_DIR / "Fuels_Tradesheet.csv"
