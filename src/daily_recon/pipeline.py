@@ -56,7 +56,7 @@ class PipelineResult:
 
 
 def _new_run_id(now: datetime) -> str:
-    return now.strftime("%Y-%m-%dT%H%M%S")
+    return now.strftime("%Y-%m-%dT%H%M%S%f")
 
 
 def _ensure_output_dir(business_date: date) -> Path:
