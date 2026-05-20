@@ -1,0 +1,34 @@
+"""Configuration constants for the daily_recon pipeline.
+
+All tunables live here. No env vars, no YAML — one file, one place to change.
+"""
+from pathlib import Path
+
+# Project root: this file is at src/daily_recon/config.py
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# Filesystem layout
+DATA_ROOT = PROJECT_ROOT / "data"
+OUTPUT_ROOT = PROJECT_ROOT / "output"
+DUCKDB_PATH = PROJECT_ROOT / "recon.duckdb"
+
+# Numeric tolerance for both volume and price comparisons.
+TOLERANCE = 1e-6
+
+# Email
+EMAIL_RECIPIENTS = ["peter.vouthas@karbone.com"]
+EMAIL_CC: list[str] = []
+EMAIL_SENDER = "peter.vouthas@karbone.com"
+
+# SMTP — Microsoft 365 defaults
+SMTP_HOST = "smtp.office365.com"
+SMTP_PORT = 587
+SMTP_STARTTLS = True
+SMTP_RETRY_DELAYS_SEC = (2, 8, 32)
+
+# Keyring credential lookup
+KEYRING_SERVICE = "karbone_recon_smtp"
+KEYRING_USERNAME = "peter.vouthas@karbone.com"
+
+# Report formatting
+MAX_TABLE_ROWS_IN_EMAIL = 50
