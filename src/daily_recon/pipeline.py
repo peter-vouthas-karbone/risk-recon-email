@@ -1,4 +1,4 @@
-"""End-to-end orchestrator for one daily run."""
+"""End-to-end orchestrator for one daily run (position breaks only)."""
 from __future__ import annotations
 
 import csv
@@ -16,11 +16,7 @@ import duckdb
 import pandas as pd
 
 from daily_recon import config
-from daily_recon.checks.historical_position import (
-    collect_historical_position_drift_exceptions,
-)
 from daily_recon.checks.position_equality import collect_position_equality_exceptions
-from daily_recon.checks.trade_drift import collect_trade_drift_exceptions
 from daily_recon.mailer import KeyringSMTPMailer
 from daily_recon.persistence import (
     PosRunRecord,
@@ -153,38 +149,26 @@ def run_pipeline(
         ))
         insert_running_positions(conn, run_id, positions_df)
 
-        # Run the four checks.
-        all_exceptions: list[dict] = []
-        all_exceptions.extend(collect_trade_drift_exceptions(conn, upstream_run_id))
         prior_business_date = (
             conn.execute(
                 "SELECT business_date FROM pos_runs WHERE run_id = ?", [prior_run_id]
             ).fetchone()[0]
             if prior_run_id else None
         )
-        all_exceptions.extend(collect_historical_position_drift_exceptions(
-            conn, current_run_id=run_id, prior_run_id=prior_run_id,
-            business_date=business_date,
-        ))
-        all_exceptions.extend(collect_position_equality_exceptions(conn, run_id=run_id))
+
+        # Run position-equality check for the last 7 days.
+        date_from = max(
+            config.DESYNC_CUTOFF_DATE,
+            business_date - timedelta(days=config.POSITION_BREAK_LOOKBACK_DAYS - 1),
+        )
+        all_exceptions = collect_position_equality_exceptions(conn, run_id=run_id, date_from=date_from)
 
         insert_exceptions(conn, run_id, all_exceptions)
 
-        counts = {
-            "trade_drift": 0,
-            "historical_position_drift": 0,
-            "position_break": 0,
-        }
-        for e in all_exceptions:
-            counts[e["check_id"]] = counts.get(e["check_id"], 0) + 1
+        counts = {"position_break": sum(1 for e in all_exceptions if e["check_id"] == "position_break")}
 
         # Write per-check CSVs.
-        by_check: dict[str, list[dict]] = {k: [] for k in counts}
-        for e in all_exceptions:
-            by_check[e["check_id"]].append(e["payload"])
-        _write_csv(out_dir / "trade_drift.csv", by_check["trade_drift"])
-        _write_csv(out_dir / "historical_position_drift.csv", by_check["historical_position_drift"])
-        _write_csv(out_dir / "position_breaks.csv", by_check["position_break"])
+        _write_csv(out_dir / "position_breaks.csv", [e["payload"] for e in all_exceptions if e["check_id"] == "position_break"])
         positions_df.to_csv(out_dir / "running_position.csv", index=False)
         (out_dir / "summary.json").write_text(json.dumps({
             "run_id": run_id,
@@ -218,11 +202,7 @@ def run_pipeline(
         (out_dir / "email.txt").write_text(text, encoding="utf-8")
 
         if send_email:
-            attachments = [
-                out_dir / "trade_drift.csv",
-                out_dir / "historical_position_drift.csv",
-                out_dir / "position_breaks.csv",
-            ]
+            attachments = [out_dir / "position_breaks.csv"]
             msg = _build_email(subject, html, text, attachments)
             (mailer or KeyringSMTPMailer()).send(msg)
 
